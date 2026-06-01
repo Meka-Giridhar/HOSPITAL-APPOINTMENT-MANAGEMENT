@@ -1,0 +1,135 @@
+{% extends 'booking/base.html' %}
+{% load static %}
+
+{% block title %}Find Doctors - Apex Health System{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-bg-glow"></div>
+    <div class="hero-content">
+        <span class="hero-badge"><i class="fa-solid fa-star"></i> Apex Health System - Healthcare booking made effortless</span>
+        <h1 class="hero-title">Connecting You With <span class="highlight">Expert Medical Care</span></h1>
+        <p class="hero-subtitle">Search, filter, and schedule appointments with top-rated medical experts in real time at Apex Health System. Your health is our priority.</p>
+        
+        <!-- Search and Filter Bar -->
+        <div class="search-container-box">
+            <form method="GET" action="{% url 'home' %}" class="search-form">
+                <div class="input-group">
+                    <i class="fa-solid fa-search search-icon"></i>
+                    <input type="text" name="q" value="{{ query }}" placeholder="Search doctors by name..." aria-label="Search doctors">
+                </div>
+                <div class="input-group select-wrapper">
+                    <i class="fa-solid fa-stethoscope select-icon"></i>
+                    <select name="specialization" aria-label="Specialization">
+                        <option value="">All Specializations</option>
+                        {% for spec in specializations %}
+                            <option value="{{ spec }}" {% if selected_specialization == spec %}selected{% endif %}>{{ spec }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary search-btn">
+                    <i class="fa-solid fa-magnifying-glass"></i> Search
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Filter Chips / Shortcut specialties -->
+<section class="specialty-chips-section">
+    <div class="section-container">
+        <h3 class="section-title-sm">Quick Browse Specialties</h3>
+        <div class="chips-grid">
+            <a href="{% url 'home' %}" class="chip-item {% if not selected_specialization %}active{% endif %}">
+                <i class="fa-solid fa-grid-2"></i> All Doctors
+            </a>
+            {% for spec in specializations %}
+                <a href="{% url 'home' %}?specialization={{ spec }}" class="chip-item {% if selected_specialization == spec %}active{% endif %}">
+                    {% if spec == 'General Medicine' %}<i class="fa-solid fa-user-doctor"></i>
+                    {% elif spec == 'Cardiology' %}<i class="fa-solid fa-heart-pulse"></i>
+                    {% elif spec == 'Dermatology' %}<i class="fa-solid fa-hand-holding-medical"></i>
+                    {% elif spec == 'Pediatrics' %}<i class="fa-solid fa-baby"></i>
+                    {% elif spec == 'Neurology' %}<i class="fa-solid fa-brain"></i>
+                    {% elif spec == 'Orthopedics' %}<i class="fa-solid fa-bone"></i>
+                    {% elif spec == 'Ophthalmology' %}<i class="fa-solid fa-eye"></i>
+                    {% elif spec == 'Gynecology' %}<i class="fa-solid fa-venus"></i>
+                    {% else %}<i class="fa-solid fa-stethoscope"></i>
+                    {% endif %}
+                    {{ spec }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Doctor Cards Grid -->
+<section class="doctors-grid-section">
+    <div class="section-container">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Available Medical Specialists at Apex Health System</h2>
+                <p class="section-subtitle">Showing {{ doctors|length }} trusted professional{% if doctors|length != 1 %}s{% endif %} ready to help you.</p>
+            </div>
+        </div>
+
+        {% if doctors %}
+            <div class="doctors-card-grid">
+                {% for doctor in doctors %}
+                    <div class="doctor-card">
+                        <div class="doctor-card-header">
+                            <div class="doctor-avatar">
+                                {% if doctor.profile_picture_url %}
+                                    <img src="{{ doctor.profile_picture_url }}" alt="Dr. {{ doctor.user.last_name }}">
+                                {% else %}
+                                    <div class="doctor-avatar-fallback">
+                                        <i class="fa-solid fa-user-doctor"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="doctor-meta">
+                                <span class="badge-specialization">{{ doctor.specialization }}</span>
+                                <h3 class="doctor-name">Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }}</h3>
+                                <div class="rating-stars">
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star"></i>
+                                    <i class="fa-solid fa-star-half-stroke"></i>
+                                    <span class="rating-count">(4.8)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="doctor-card-body">
+                            <p class="doctor-bio">{{ doctor.bio|truncatewords:20 }}</p>
+                            <div class="doctor-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Experience</span>
+                                    <span class="stat-val">{{ doctor.experience_years }} Years</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Fee</span>
+                                    <span class="stat-val">${{ doctor.consultation_fee|floatformat:0 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="doctor-card-footer">
+                            <a href="{% url 'doctor_detail' doctor.id %}" class="btn btn-outline-primary btn-block">
+                                <i class="fa-solid fa-calendar-alt"></i> View Profile & Book
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state-box">
+                <i class="fa-solid fa-user-slash empty-icon"></i>
+                <h3>No Doctors Found</h3>
+                <p>We couldn't find any doctor matching your search terms. Try clearing filters or typing a different name.</p>
+                <a href="{% url 'home' %}" class="btn btn-primary">Clear Filters</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

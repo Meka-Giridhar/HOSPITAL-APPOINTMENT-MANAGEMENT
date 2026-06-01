@@ -1,0 +1,136 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Book Appointment with Dr. {{ doctor.user.last_name }} - Apex Health System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="breadcrumb">
+        <a href="{% url 'home' %}"><i class="fa-solid fa-arrow-left"></i> Back to Doctors</a>
+    </div>
+
+    <div class="doctor-profile-grid">
+        <!-- Left Side: Doctor Card Details -->
+        <div class="doctor-info-pane">
+            <div class="doctor-profile-header">
+                <div class="doctor-profile-avatar">
+                    {% if doctor.profile_picture_url %}
+                        <img src="{{ doctor.profile_picture_url }}" alt="Dr. {{ doctor.user.last_name }}">
+                    {% else %}
+                        <div class="doctor-avatar-fallback large">
+                            <i class="fa-solid fa-user-doctor"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="doctor-profile-meta">
+                    <span class="badge-specialization large">{{ doctor.specialization }}</span>
+                    <h2>Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }}</h2>
+                    <p class="experience-text"><i class="fa-solid fa-award"></i> {{ doctor.experience_years }} Years Clinical Experience</p>
+                    <div class="rating-stars inline">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star-half-stroke"></i>
+                        <span>4.8 (84 patient reviews)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="doctor-profile-body">
+                <h3>Biography</h3>
+                <p class="doctor-long-bio">{{ doctor.bio }}</p>
+
+                <div class="payment-note">
+                    <div class="fee-card">
+                        <span class="fee-title">Consultation Fee</span>
+                        <span class="fee-price">${{ doctor.consultation_fee|floatformat:2 }}</span>
+                    </div>
+                    <div class="fee-info">
+                        <p><i class="fa-solid fa-shield-halved"></i> Verified Doctor Profile</p>
+                        <p><i class="fa-solid fa-clock"></i> 30-minute standard slot consultation duration</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Booking Panel -->
+        <div class="booking-pane">
+            <div class="booking-card">
+                <h3>Schedule Your Appointment</h3>
+                <p class="booking-card-desc">Select an available date and time slot below to secure your consultation.</p>
+                
+                <!-- Date Selector Form -->
+                <form method="GET" class="date-selector-form" id="dateSelectorForm">
+                    <label for="appointmentDate" class="form-label">Select Date:</label>
+                    <div class="date-input-wrapper">
+                        <i class="fa-solid fa-calendar-day calendar-icon"></i>
+                        <input type="date" id="appointmentDate" name="date" 
+                               value="{{ selected_date|date:'Y-m-d' }}" 
+                               min="{{ min_date }}" max="{{ max_date }}"
+                               onchange="document.getElementById('dateSelectorForm').submit()">
+                    </div>
+                </form>
+
+                <hr class="divider">
+
+                <h4 class="slots-header">Available Time Slots for {{ weekday_name }}, {{ selected_date|date:"M d, Y" }}</h4>
+                
+                {% if slots %}
+                    <form method="POST" action="{% url 'book_appointment' doctor.id %}" id="bookingForm">
+                        {% csrf_token %}
+                        <!-- Hidden Date for booking submission -->
+                        <input type="hidden" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+                        
+                        <!-- Grid of Time Slots -->
+                        <div class="slots-grid">
+                            {% for slot in slots %}
+                                <div class="slot-container">
+                                    <input type="radio" name="time" id="slot-{{ forloop.counter }}" 
+                                           value="{{ slot.time|time:'H:i:s' }}" 
+                                           {% if slot.is_booked %}disabled{% endif %} 
+                                           required class="slot-radio">
+                                    <label for="slot-{{ forloop.counter }}" class="slot-label-btn {% if slot.is_booked %}booked{% endif %}">
+                                        {{ slot.formatted }}
+                                        {% if slot.is_booked %}
+                                            <span class="slot-badge">Booked</span>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Symptoms and Notes -->
+                        <div class="form-group mt-4">
+                            <label for="symptoms" class="form-label">Reason for Visit / Symptoms:</label>
+                            <textarea id="symptoms" name="symptoms" rows="3" placeholder="Briefly describe your symptoms or reason for scheduling..." class="form-textarea" required></textarea>
+                        </div>
+
+                        <!-- Booking Action Button -->
+                        {% if request.user.is_authenticated %}
+                            {% if request.user.doctor_profile %}
+                                <button type="button" class="btn btn-primary btn-block mt-4" disabled>
+                                    Cannot book as Doctor
+                                </button>
+                            {% else %}
+                                <button type="submit" class="btn btn-primary btn-block mt-4">
+                                    Confirm & Book Appointment
+                                </button>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary btn-block mt-4 text-center">
+                                Login to Book Appointment
+                            </a>
+                        {% endif %}
+                    </form>
+                {% else %}
+                    <div class="no-slots-box">
+                        <i class="fa-solid fa-calendar-xmark text-muted mb-2 fs-2"></i>
+                        <p>Dr. {{ doctor.user.last_name }} has no scheduled availability on this day of the week.</p>
+                        <span class="suggest-text">Please choose another date (Monday - Friday are general clinic days).</span>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

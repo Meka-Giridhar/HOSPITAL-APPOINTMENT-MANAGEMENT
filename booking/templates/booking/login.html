@@ -1,0 +1,57 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Patient Login - Apex Health System{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <i class="fa-solid fa-lock-open auth-icon"></i>
+            <h2>Welcome Back</h2>
+            <p>Access your medical portal and view your appointments</p>
+        </div>
+
+        <form method="POST" class="auth-form">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {% for error in form.non_field_errors %}
+                        <p class="error-msg"><i class="fa-solid fa-circle-xmark"></i> {{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label for="id_username" class="form-label">Username</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-user input-icon"></i>
+                    {{ form.username }}
+                </div>
+                {% if form.username.errors %}
+                    <span class="error-text">{{ form.username.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_password" class="form-label">Password</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-key input-icon"></i>
+                    {{ form.password }}
+                </div>
+                {% if form.password.errors %}
+                    <span class="error-text">{{ form.password.errors.0 }}</span>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block mt-3">
+                <i class="fa-solid fa-right-to-bracket"></i> Login
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>New to apexhealth Care? <a href="{% url 'register' %}">Create Patient Account</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

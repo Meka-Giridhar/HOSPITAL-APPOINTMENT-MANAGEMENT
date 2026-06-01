@@ -1,0 +1,162 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Apex Healthcare | Appointment Booking Portal{% endblock %}</title>
+    
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Vanilla Styles -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <div class="nav-container">
+            <a href="{% url 'home' %}" class="logo">
+                <i class="fa-solid fa-house-chimney-medical logo-icon"></i>
+                <span>Apex <span>Healthcare</span></span>
+            </a>
+
+            <nav class="nav-links">
+
+                <a href="{% url 'home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                    <i class="fa-solid fa-user-doctor"></i> Find Doctor
+                </a>
+                
+                {% if request.user.is_authenticated %}
+
+                    {% if request.user.doctor_profile %}
+                        <a href="{% url 'doctor_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'doctor_dashboard' %}active{% endif %}">
+                            <i class="fa-solid fa-chart-line"></i> Doctor Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{% url 'patient_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'patient_dashboard' %}active{% endif %}">
+                            <i class="fa-solid fa-calendar-check"></i> My Appointments
+                        </a>
+                    {% endif %}
+                    
+                    <span class="user-greeting">
+                        <i class="fa-solid fa-circle-user"></i>
+                        Hello, {{ request.user.first_name|default:request.user.username }}
+                    </span>
+
+                    <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </a>
+
+                {% else %}
+
+                    <a href="{% url 'login' %}" class="nav-link {% if request.resolver_match.url_name == 'login' %}active{% endif %}">
+                        Login
+                    </a>
+
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-user-plus"></i> Join as Patient
+                    </a>
+
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <!-- Toast Notifications -->
+    {% if messages %}
+        <div class="toast-container" id="toastContainer">
+
+            {% for message in messages %}
+                <div class="toast toast-{{ message.tags }}" role="alert">
+
+                    <div class="toast-content">
+
+                        {% if message.tags == 'success' %}
+                            <i class="fa-solid fa-circle-check toast-icon"></i>
+
+                        {% elif message.tags == 'error' %}
+                            <i class="fa-solid fa-triangle-exclamation toast-icon"></i>
+
+                        {% else %}
+                            <i class="fa-solid fa-circle-info toast-icon"></i>
+                        {% endif %}
+
+                        <span class="toast-message">{{ message }}</span>
+
+                    </div>
+
+                    <button class="toast-close" onclick="this.parentElement.remove()">
+                        &times;
+                    </button>
+
+                </div>
+            {% endfor %}
+
+        </div>
+    {% endif %}
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer-bar">
+
+        <div class="footer-container">
+
+            <p>
+                &copy; 2026 Apex Healthcare. Built with Django & Premium UI Design.
+            </p>
+
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact Us</a>
+            </div>
+
+        </div>
+
+    </footer>
+
+    <!-- Global Interactions Script -->
+    <script>
+
+        // Auto-fade toasts after 5 seconds
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const container = document.getElementById('toastContainer');
+
+            if (container) {
+
+                const toasts = container.querySelectorAll('.toast');
+
+                toasts.forEach(toast => {
+
+                    setTimeout(() => {
+
+                        toast.classList.add('fade-out');
+
+                        setTimeout(() => toast.remove(), 500);
+
+                    }, 4500);
+
+                });
+
+            }
+
+        });
+
+    </script>
+
+</body>
+</html>

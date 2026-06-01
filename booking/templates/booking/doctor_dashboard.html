@@ -1,0 +1,216 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Doctor Console - Apex Health System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Welcome banner -->
+    <div class="dashboard-banner doctor-theme">
+        <div class="banner-content">
+            <h1>Doctor Console</h1>
+            <p>Welcome back, Dr. {{ doctor.user.last_name }}. Monitor today's consultations and update patient files.</p>
+        </div>
+        <div class="banner-stats">
+            <div class="banner-stat-card">
+                <span class="stat-num">{{ today_bookings|length }}</span>
+                <span class="stat-title">Today's Visits</span>
+            </div>
+            <div class="banner-stat-card">
+                <span class="stat-num">{{ upcoming|length }}</span>
+                <span class="stat-title">Future Bookings</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Doctor Info Sidebar -->
+        <div class="patient-sidebar">
+            <div class="sidebar-card">
+                <div class="profile-summary-header">
+                    <div class="profile-avatar-char doc-char">
+                        D
+                    </div>
+                    <h3>Dr. {{ doctor.user.first_name }} {{ doctor.user.last_name }}</h3>
+                    <span class="badge-role doc-badge">{{ doctor.specialization }}</span>
+                </div>
+                <hr class="divider">
+                <div class="profile-details-list">
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="fa-solid fa-graduation-cap"></i> Experience:</span>
+                        <span class="detail-val">{{ doctor.experience_years }} Years</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="fa-solid fa-dollar-sign"></i> Consultation:</span>
+                        <span class="detail-val">${{ doctor.consultation_fee }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label"><i class="fa-solid fa-envelope"></i> Email:</span>
+                        <span class="detail-val">{{ doctor.user.email }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Doctor Work Panel -->
+        <div class="dashboard-main-panel">
+            <!-- Section: Today's Appointments -->
+            <div class="content-card mb-4">
+                <h3 class="panel-section-title"><i class="fa-solid fa-notes-medical text-primary"></i> Today's Consultations</h3>
+                
+                {% if today_bookings %}
+                    <div class="appointments-list">
+                        {% for appt in today_bookings %}
+                            <div class="appointment-row-card {% if appt.status == 'Completed' %}completed-border{% endif %}">
+                                <div class="appt-meta-info">
+                                    <div class="appt-doctor">
+                                        <i class="fa-solid fa-circle-user doctor-icon-sub pat-icon"></i>
+                                        <div>
+                                            <h4>Patient: {{ appt.patient.user.get_full_name|default:appt.patient.user.username }}</h4>
+                                            <span class="spec-label">Gender: {{ appt.patient.gender }} | Phone: {{ appt.patient.phone_number }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="appt-schedule">
+                                        <span class="time-badge"><i class="fa-solid fa-clock"></i> {{ appt.time_slot|time:"I:i A" }}</span>
+                                        <span class="badge-status status-{{ appt.status|lower }}">{{ appt.status }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="appt-reason">
+                                    <strong>Reported Symptoms / Reason:</strong>
+                                    <p>{{ appt.symptoms|default:"General consult" }}</p>
+                                </div>
+
+                                {% if appt.status == 'Scheduled' %}
+                                    <!-- Form to enter prescription details and complete visit -->
+                                    <hr class="card-inner-divider">
+                                    <form method="POST" action="{% url 'update_appointment_notes' appt.id %}" class="prescription-form">
+                                        {% csrf_token %}
+                                        <div class="form-group">
+                                            <label for="notes-{{ appt.id }}" class="form-label font-weight-bold">Clinical Notes & Prescriptions:</label>
+                                            <textarea id="notes-{{ appt.id }}" name="doctor_notes" rows="3" 
+                                                      placeholder="Write medical advice, diagnosed symptoms, and prescribed drugs here..." 
+                                                      class="form-textarea" required>{{ appt.doctor_notes|default:"" }}</textarea>
+                                        </div>
+                                        <div class="form-actions mt-3">
+                                            <button type="submit" class="btn btn-success btn-sm">
+                                                <i class="fa-solid fa-file-signature"></i> Save Notes & Complete Visit
+                                            </button>
+                                            <a href="{% url 'cancel_appointment' appt.id %}" class="btn btn-outline-danger btn-sm">
+                                                <i class="fa-solid fa-ban"></i> Cancel Booking
+                                            </a>
+                                        </div>
+                                    </form>
+                                {% else %}
+                                    <!-- View notes if already completed -->
+                                    {% if appt.doctor_notes %}
+                                        <div class="prescription-bubble doctor-bubble">
+                                            <strong>Saved Prescription Notes:</strong>
+                                            <p>{{ appt.doctor_notes }}</p>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="dashboard-empty-panel">
+                        <i class="fa-solid fa-calendar-day"></i>
+                        <p>No appointments scheduled for today.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Section: Future Scheduled Bookings -->
+            <div class="content-card mb-4">
+                <h3 class="panel-section-title"><i class="fa-solid fa-calendar-days text-info"></i> Future Bookings</h3>
+                
+                {% if upcoming %}
+                    <div class="history-table-wrapper">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Reason / Symptoms</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appt in upcoming %}
+                                    <tr>
+                                        <td>
+                                            <span class="table-doc-name">{{ appt.patient.user.get_full_name|default:appt.patient.user.username }}</span>
+                                            <span class="table-doc-spec">Phone: {{ appt.patient.phone_number }}</span>
+                                        </td>
+                                        <td>{{ appt.date|date:"M d, Y" }}</td>
+                                        <td>{{ appt.time_slot|time:"I:i A" }}</td>
+                                        <td class="table-symptoms">{{ appt.symptoms|default:"General checkup" }}</td>
+                                        <td>
+                                            <a href="{% url 'cancel_appointment' appt.id %}" class="btn btn-outline-danger btn-xs">
+                                                Cancel
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="dashboard-empty-panel">
+                        <i class="fa-solid fa-calendar-plus"></i>
+                        <p>No future bookings scheduled.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Section: Completed and Cancelled History -->
+            <div class="content-card">
+                <h3 class="panel-section-title"><i class="fa-solid fa-history text-muted"></i> Historical Logs</h3>
+                
+                {% if past %}
+                    <div class="history-table-wrapper">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Final Clinical Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appt in past %}
+                                    <tr>
+                                        <td>
+                                            <span class="table-doc-name">{{ appt.patient.user.get_full_name|default:appt.patient.user.username }}</span>
+                                            <span class="table-doc-spec">Gender: {{ appt.patient.gender }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="table-date">{{ appt.date|date:"M d, Y" }}</span>
+                                            <span class="table-time">{{ appt.time_slot|time:"I:i A" }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge-status status-{{ appt.status|lower }}">
+                                                {{ appt.status }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="table-notes">{{ appt.doctor_notes|default:"-" }}</span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="dashboard-empty-panel">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <p>No historical visits found.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

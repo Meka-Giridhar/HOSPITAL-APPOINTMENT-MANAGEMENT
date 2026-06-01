@@ -1,0 +1,512 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}
+Patient Dashboard - Apex Health System
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- DASHBOARD BANNER -->
+
+    <div class="dashboard-banner">
+
+        <div class="banner-content">
+
+            <h1>Patient Dashboard</h1>
+
+            <p>
+                Manage your appointments and view your
+                medical consultation history.
+            </p>
+
+        </div>
+
+        <div class="banner-stats">
+
+            <div class="banner-stat-card">
+
+                <span class="stat-num">
+                    {{ upcoming|length }}
+                </span>
+
+                <span class="stat-title">
+                    Scheduled
+                </span>
+
+            </div>
+
+            <div class="banner-stat-card">
+
+                <span class="stat-num">
+                    {{ past|length }}
+                </span>
+
+                <span class="stat-title">
+                    Past Visits
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- DASHBOARD GRID -->
+
+    <div class="dashboard-grid">
+
+        <!-- SIDEBAR -->
+
+        <div class="patient-sidebar">
+
+            <div class="sidebar-card">
+
+                <div class="profile-summary-header">
+
+                    <div class="profile-avatar-char">
+
+                        {{ patient.user.first_name.0|default:patient.user.username.0|upper }}
+
+                    </div>
+
+                    <h3>
+
+                        {{ patient.user.get_full_name|default:patient.user.username }}
+
+                    </h3>
+
+                    <span class="badge-role">
+                        Patient
+                    </span>
+
+                </div>
+
+                <hr class="divider">
+
+                <div class="profile-details-list">
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+
+                            <i class="fa-solid fa-envelope"></i>
+
+                            Email:
+
+                        </span>
+
+                        <span class="detail-val">
+
+                            {{ patient.user.email }}
+
+                        </span>
+
+                    </div>
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+
+                            <i class="fa-solid fa-phone"></i>
+
+                            Contact:
+
+                        </span>
+
+                        <span class="detail-val">
+
+                            {{ patient.phone_number }}
+
+                        </span>
+
+                    </div>
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+
+                            <i class="fa-solid fa-cake-candles"></i>
+
+                            DOB:
+
+                        </span>
+
+                        <span class="detail-val">
+
+                            {{ patient.date_of_birth|date:"M d, Y" }}
+
+                        </span>
+
+                    </div>
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+
+                            <i class="fa-solid fa-venus-mars"></i>
+
+                            Gender:
+
+                        </span>
+
+                        <span class="detail-val">
+
+                            {{ patient.gender }}
+
+                        </span>
+
+                    </div>
+
+                    <div class="detail-item">
+
+                        <span class="detail-label">
+
+                            <i class="fa-solid fa-droplet"></i>
+
+                            Blood Type:
+
+                        </span>
+
+                        <span class="detail-val">
+
+                            {{ patient.blood_group|default:"Not specified" }}
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <a href="{% url 'home' %}"
+                   class="btn btn-primary btn-block mt-4">
+
+                    <i class="fa-solid fa-plus"></i>
+
+                    Book New Appointment
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- MAIN PANEL -->
+
+        <div class="dashboard-main-panel">
+
+            <!-- UPCOMING APPOINTMENTS -->
+
+            <div class="content-card mb-4">
+
+                <h3 class="panel-section-title">
+
+                    <i class="fa-solid fa-calendar-days text-primary"></i>
+
+                    Upcoming Consultations
+
+                </h3>
+
+                {% if upcoming %}
+
+                    <div class="appointments-list">
+
+                        {% for appt in upcoming %}
+
+                            <div class="appointment-row-card">
+
+                                <div class="appt-meta-info">
+
+                                    <div class="appt-doctor">
+
+                                        <i class="fa-solid fa-user-md doctor-icon-sub"></i>
+
+                                        <div>
+
+                                            <h4>
+
+                                                Dr.
+                                                {{ appt.doctor.user.first_name }}
+                                                {{ appt.doctor.user.last_name }}
+
+                                            </h4>
+
+                                            <span class="spec-label">
+
+                                                {{ appt.doctor.specialization }}
+
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="appt-schedule">
+
+                                        <span class="date-badge">
+
+                                            <i class="fa-solid fa-calendar"></i>
+
+                                            {{ appt.date|date:"l, M d, Y" }}
+
+                                        </span>
+
+                                        <span class="time-badge">
+
+                                            <i class="fa-solid fa-clock"></i>
+
+                                            {{ appt.time_slot|time:"I:i A" }}
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="appt-reason">
+
+                                    <strong>
+                                        Symptoms / Reason:
+                                    </strong>
+
+                                    <p>
+
+                                        {{ appt.symptoms|default:"General consult" }}
+
+                                    </p>
+
+                                </div>
+
+                                <!-- BUTTON -->
+
+                                <div class="appt-actions">
+
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            onclick="confirmCancellation(`{% url 'cancel_appointment' appt.id %}`)">
+
+                                        <i class="fa-solid fa-calendar-xmark"></i>
+
+                                        Cancel Appointment
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% else %}
+
+                    <div class="dashboard-empty-panel">
+
+                        <i class="fa-solid fa-notes-medical"></i>
+
+                        <p>
+                            No upcoming appointments found.
+                        </p>
+
+                        <a href="{% url 'home' %}"
+                           class="btn btn-outline-primary btn-sm">
+
+                            Find a doctor and book today
+
+                        </a>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+            <!-- HISTORY -->
+
+            <div class="content-card">
+
+                <h3 class="panel-section-title">
+
+                    <i class="fa-solid fa-clock-rotate-left text-muted"></i>
+
+                    Appointment History
+
+                </h3>
+
+                {% if past %}
+
+                    <div class="history-table-wrapper">
+
+                        <table class="history-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Doctor</th>
+
+                                    <th>Date & Time</th>
+
+                                    <th>Status</th>
+
+                                    <th>Doctor Notes</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                {% for appt in past %}
+
+                                    <tr>
+
+                                        <td>
+
+                                            Dr.
+                                            {{ appt.doctor.user.first_name }}
+                                            {{ appt.doctor.user.last_name }}
+
+                                        </td>
+
+                                        <td>
+
+                                            {{ appt.date|date:"M d, Y" }}
+
+                                            |
+
+                                            {{ appt.time_slot|time:"h:i A" }}
+
+                                        </td>
+
+                                        <td>
+
+                                            {{ appt.status }}
+
+                                        </td>
+
+                                        <td>
+
+                                            {{ appt.doctor_notes|default:"No notes available" }}
+
+                                        </td>
+
+                                    </tr>
+
+                                {% endfor %}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="dashboard-empty-panel">
+
+                        <i class="fa-solid fa-history"></i>
+
+                        <p>
+                            No appointment history found.
+                        </p>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- MODAL -->
+
+<div class="custom-modal-backdrop"
+     id="cancelModal">
+
+    <div class="custom-modal-box">
+
+        <div class="modal-header">
+
+            <h3>
+
+                <i class="fa-solid fa-triangle-exclamation"></i>
+
+                Cancel Appointment?
+
+            </h3>
+
+            <button onclick="closeModal()">
+
+                &times;
+
+            </button>
+
+        </div>
+
+        <div class="modal-body">
+
+            <p>
+
+                Are you sure you want to cancel this appointment?
+
+            </p>
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button class="btn btn-outline"
+                    onclick="closeModal()">
+
+                Keep Appointment
+
+            </button>
+
+            <a href="#"
+               id="confirmCancelBtn"
+               class="btn btn-danger">
+
+                Confirm Cancellation
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- JAVASCRIPT -->
+
+<script>
+
+function confirmCancellation(url){
+
+    const modal =
+        document.getElementById('cancelModal');
+
+    const confirmBtn =
+        document.getElementById('confirmCancelBtn');
+
+    confirmBtn.href = url;
+
+    modal.classList.add('show');
+}
+
+function closeModal(){
+
+    const modal =
+        document.getElementById('cancelModal');
+
+    modal.classList.remove('show');
+}
+
+</script>
+
+{% endblock %}
