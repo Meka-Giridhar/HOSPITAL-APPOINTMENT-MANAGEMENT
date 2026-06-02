@@ -111,10 +111,16 @@ USE_I18N = True
 
 USE_TZ = True
 
+STATIC_URL = '/static/'
 
-STATIC_URL = 'static/'
-media_url='/media/'
-media_ROOT= BASE_DIR / 'media'
+STATICFILES_DIRS = [
+    BASE_DIR / 'booking' / 'static',
+]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Redirect paths for login/logout
 LOGIN_REDIRECT_URL = 'home'
